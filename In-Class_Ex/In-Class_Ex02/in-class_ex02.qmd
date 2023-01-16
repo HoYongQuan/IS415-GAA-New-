@@ -1,3 +1,35 @@
 ---
-title: "in-class_ex02"
+title: "In-class Exercise 2: Geospatial Data Wrangling"
+date: "`r Sys.Date()`"
+format: html
+execute: 
+  message: false
+  warning: false
+editor: visual
 ---
+## Install sf and tidyverse
+
+```{r}
+#| code-fold: false
+#| code-summary: "Show the code"
+pacman::p_load(sf, tidyverse, funModeling)
+```
+
+## Importing Geospatial Data
+
+### Geo Boundaries
+
+```{r}
+geoNGA <- st_read("data/geospatial/",
+                  layer = "geoBoundaries-NGA-ADM2") %>% 
+  st_transform(crs = 26392)
+```
+
+### NGA
+
+```{r}
+NGA <- st_read("data/geospatial/",
+               layer = "nga_admbnda_adm2_osgof_20190417") %>%
+  st_transform(crs = 26392)
+```
+
