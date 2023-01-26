@@ -1,5 +1,7 @@
 ---
 title: "In-class Exercise 3: Analytical Mapping"
+date: "25th January 2023"
+date-modified: "`r Sys.Date()`"
 ---
 
 # 1 Overview
@@ -125,7 +127,7 @@ var <- NGA_wp["pct_functional"] %>%
 quantile(var[,1], percent)
 ```
 
-5.1.2 Why Writing Functions?
+### 5.1.2 Why Writing Functions?
 
 Writing a function has three big advantages over using copy-and-paste:
 
