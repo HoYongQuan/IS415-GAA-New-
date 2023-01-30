@@ -39,16 +39,16 @@ pacman::p_load(maptools, sf, raster, spatstat, tmap)
 In this section, [*st_read()*](https://r-spatial.github.io/sf/reference/st_read.html) of **sf** package will be used to import these three geospatial data sets into R.
 
 ```{r}
-childcare_sf <- st_read("chap04/data/child-care-services-geojson.geojson") %>%
+childcare_sf <- st_read("data/child-care-services-geojson.geojson") %>%
   st_transform(crs = 3414)
 ```
 
 ```{r}
-sg_sf <- st_read(dsn = "chap04/data", layer="CostalOutline")
+sg_sf <- st_read(dsn = "data", layer="CostalOutline")
 ```
 
 ```{r}
-mpsz_sf <- st_read(dsn = "chap04/data", 
+mpsz_sf <- st_read(dsn = "data", 
                 layer = "MP14_SUBZONE_WEB_PL")
 ```
 
