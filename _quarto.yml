@@ -13,8 +13,10 @@ website:
         menu:
           - text: "In-Class Exercise 2"
             href: "In-Class_Ex/In-Class_Ex02/in-class_ex02.html"
-          - text: "in-Class Exercise 3"
+          - text: "In-Class Exercise 3"
             href: "In-Class_Ex/In-Class_Ex03/in-class_ex03.html"
+          - text: "In-Class Exercise 4"
+            href: "In-Class_Ex/In-Class_Ex04/in-class_ex04.html"
        
     right:
       - href: index.qmd
