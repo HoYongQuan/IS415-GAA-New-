@@ -2,10 +2,6 @@
 title: "1st Order Spatial Point Patterns Analysis Methods"
 date: "31 January 2023"
 date-modified: "`r Sys.Date()`"
-execute:
-  echo: true
-  eval: true
-  warning: false
 ---
 
 # 4.1 Overview
@@ -63,15 +59,11 @@ mpsz_sf <- st_read(dsn = "data",
 Before we can use these data for analysis, it is important for us to ensure that they are projected in same projection system.
 
 ```{r}
-childcare_sf
+sg_sf
 ```
 
 ```{r}
 mpsz_sf
-```
-
-```{r}
-sg_sf
 ```
 
 ## 4.4.2 Mapping the geospatial data sets
@@ -80,6 +72,18 @@ After checking the referencing system of each geospatial data data frame, it is 
 
 ```{r}
 st_crs(childcare_sf)
+```
+
+```{r}
+st_crs(mpsz_sf)
+```
+
+```{r}
+st_crs(sg_sf)
+```
+
+```{r}
+sf_use_s2(FALSE)
 ```
 
 ```{r}
