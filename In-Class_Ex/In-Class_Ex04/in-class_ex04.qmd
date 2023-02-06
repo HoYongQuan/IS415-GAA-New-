@@ -74,3 +74,29 @@ tm_shape(childcare_sf)+
 ```
 
 # Geospatial Data Wrangling
+
+## Handling duplicated point events
+
+::: callout-note
+jitter: push the data points apart
+
+ppp: required by spatstat
+
+owin: confine the study area
+:::
+
+```{r}
+childcare_ppp_jit <- rjitter(childcare_ppp, retry = TRUE, nsim=1, drop = TRUE)
+```
+
+```{r}
+any(duplicated(childcare_ppp_jit))
+```
+
+## Creating owin object
+
+```{r}
+
+```
+
+## Combining point events object and owin object
