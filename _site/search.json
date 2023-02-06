@@ -656,5 +656,19 @@
     "title": "Take-home Exercise 1: Application of Spatial Point Patterns Analysis to discover the geographical distribution of functional and non-function water points in Osun State, Nigeria",
     "section": "Geospatial data",
     "text": "Geospatial data\nThis study will focus of Osun State, Nigeria. The state boundary GIS data of Nigeria can be downloaded either from The Humanitarian Data Exchange portal or geoBoundaries."
+  },
+  {
+    "objectID": "In-Class_Ex/In-Class_Ex05/in-class_ex05.html",
+    "href": "In-Class_Ex/In-Class_Ex05/in-class_ex05.html",
+    "title": "in-class_ex05",
+    "section": "",
+    "text": "pacman:: p_load(tidyverse, tmap, sf ,sfdep)"
+  },
+  {
+    "objectID": "In-Class_Ex/In-Class_Ex05/in-class_ex05.html#visualising-the-sf-layers",
+    "href": "In-Class_Ex/In-Class_Ex05/in-class_ex05.html#visualising-the-sf-layers",
+    "title": "in-class_ex05",
+    "section": "Visualising the sf layers",
+    "text": "Visualising the sf layers\n\ntmap_mode(\"view\")\n\ntmap mode set to interactive viewing\n\ntm_shape(studyArea) + \n  tm_polygons() +\ntm_shape(stores)+\n  tm_dots(col = \"Name\",\n          size = 0.01,\n          border.col = \"black\",\n          border.lwd = 0.5) +\n  tm_view(set.zoom.limits = c(12,16))\n\n\n\n\n\n\n\nnb <- include_self(\n  st_knn(st_geometry(stores),6))\n\n\nwt <- st_kernel_weights(nb,\n                        stores,\n                        \"gaussian\",\n                        adaptive = TRUE)\n\n\nFamilyMart <- stores %>%\n  filter(Name == \"Family Mart\")\nA <- FamilyMart$Name\n\n\nSevenEleven <- stores %>%\n  filter(Name == \"7-Eleven\")\nB <- SevenEleven$Name\n\n\nLCLQ <- local_colocation(A, B, nb, wt, 49)\n\n\nLCLQ_stores <- cbind(stores, LCLQ)\n\n\ntmap_mode(\"view\")\n\ntmap mode set to interactive viewing\n\ntm_shape(studyArea) +\n  tm_polygons() + \ntm_shape(LCLQ_stores) +\n  tm_dots(col = \"X7.Eleven\",\n          size = 0.01,\n          border.col = \"black\",\n          border.lwd = 0.5) +\n  tm_view(set.zoom.limits = c(12,16))"
   }
 ]
