@@ -55,3 +55,22 @@ Converting the generic sp format into spatstat's PPP format
 childcare_ppp <- as(childcare_sp, "ppp")
 childcare_ppp
 ```
+
+# Visualizing the sf layers
+
+::: callout-note
+## alpha value control instensity of color
+
+data can be sf or sp format (layer method)
+
+set.zoom.limits: 11 is zoom out value, 14 is zoom in value
+:::
+
+```{r}
+tmap_mode('view')
+tm_shape(childcare_sf)+
+  tm_dots(alph = 0.5, size = 0.01)
+  tm_view(set.zoom.limits = c(11,14))
+```
+
+# Geospatial Data Wrangling
