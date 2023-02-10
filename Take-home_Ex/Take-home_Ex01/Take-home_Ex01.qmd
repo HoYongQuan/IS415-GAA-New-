@@ -9,23 +9,23 @@ execute:
 editor: visual
 ---
 
-# Setting the Scene
+# 1 Setting the Scene
 
-Water is an important resource to mankind. Clean and accessible water is critical to human health. It provides a healthy environment, a sustainable economy, reduces poverty and ensures peace and security. Yet over 40% of the global population does not have access to sufficient clean water. By 2025, 1.8 billion people will be living in countries or regions with absolute water scarcity, according to UN-Water. The lack of water poses a major threat to several sectors, including food security. Agriculture uses about 70% of the world\'s accessible freshwater.
+Water is an important resource to mankind. Clean and accessible water is critical to human health. It provides a healthy environment, a sustainable economy, reduces poverty and ensures peace and security. Yet over 40% of the global population does not have access to sufficient clean water. By 2025, 1.8 billion people will be living in countries or regions with absolute water scarcity, according to UN-Water. The lack of water poses a major threat to several sectors, including food security. Agriculture uses about 70% of the world's accessible freshwater.
 
 Developing countries are most affected by water shortages and poor water quality. Up to 80% of illnesses in the developing world are linked to inadequate water and sanitation. Despite technological advancement, providing clean water to the rural community is still a major development issues in many countries globally, especially countries in the Africa continent.
 
 To address the issue of providing clean and sustainable water supply to the rural community, a global [Water Point Data Exchange (WPdx)](https://www.waterpointdata.org/about/) project has been initiated. The main aim of this initiative is to collect water point related data from rural areas at the water point or small water scheme level and share the data via WPdx Data Repository, a cloud-based data library. What is so special of this project is that data are collected based on [WPDx Data Standard](https://www.waterpointdata.org/wp-content/uploads/2021/04/WPDx_Data_Standard.pdf).
 
-# Objectives
+# 2 Objectives
 
 Geospatial analytics hold tremendous potential to address complex problems facing society. In this study, we are tasked to apply appropriate spatial point patterns analysis methods to discover the geographical distribution of functional and non-function water points and their co-locations if any in Osun State, Nigeria.
 
-# The Task
+# 3 The Task
 
 The specific tasks of this take-home exercise are as follows:
 
-## Exploratory Spatial Data Analysis (ESDA)
+## 3.1 Exploratory Spatial Data Analysis (ESDA)
 
 -   Derive kernel density maps of functional and non-functional water points. Using appropriate tmap functions,
 
@@ -33,7 +33,7 @@ The specific tasks of this take-home exercise are as follows:
 
 -   Describe the spatial patterns revealed by the kernel density maps. Highlight the advantage of kernel density map over point map.
 
-## **Second-order Spatial Point Patterns Analysis**
+## 3.2 Second-order Spatial Point Patterns Analysis
 
 With reference to the spatial point patterns observed in ESDA:
 
@@ -43,7 +43,7 @@ With reference to the spatial point patterns observed in ESDA:
 
 -   With reference to the analysis results, draw statistical conclusions.
 
-## Spatial Correlation Analysis
+## 3.3 Spatial Correlation Analysis
 
 In this section, we are required to confirm statistically if the spatial distribution of functional and non-functional water points are independent from each other.
 
@@ -53,26 +53,557 @@ In this section, we are required to confirm statistically if the spatial distrib
 
 -   With reference to the analysis results, draw statistical conclusions.
 
-# The Data
+# 4 The Data
 
-## **Aspatial data**
+## 4.1 Aspatial data
 
 For the purpose of this assignment, data from [WPdx Global Data Repositories](https://www.waterpointdata.org/access-data/) will be used. There are two versions of the data. They are: WPdx-Basic and WPdx+. This take home assignment will use the **WPdx+** data set.
 
-## **Geospatial data**
+## 4.2 Geospatial data
 
 This study will focus of Osun State, Nigeria. The state boundary GIS data of Nigeria can be downloaded either from The [Humanitarian Data Exchange](https://data.humdata.org/) portal or [geoBoundaries](https://www.geoboundaries.org/).
 
-# Install and Load Packages
+# 5 Getting Started
+
+## 5.1 Install and Load Packages
 
 ```{r}
-
+pacman::p_load(funModeling, maptools, tidyverse, sf, sfdep, raster, spatstat, tmap)
 ```
 
-# Data Import
+## 5.2 Importing Data
+
+### 5.2.1 Geospatial Data
+
+#### 5.2.1.1 Reading GeoBoundaries Data Set
 
 ```{r}
-
+geoNGA <- st_read(dsn = "data/geospatial", layer="geoBoundaries-NGA-ADM2") %>%
+  st_transform(crs = 26392)
 ```
 
-# 
+#### 5.2.1.2 Reading NGA Data Set
+
+```{r}
+NGA <- st_read("data/geospatial/",
+               layer = "nga_admbnda_adm2_osgof_20190417") %>%
+  st_transform(crs = 26392)
+```
+
+### 5.2.2 Aspatial Data
+
+#### 5.2.2.1 Reading WPdx+ Data Set
+
+```{r}
+Waterpoint =  read_csv("data/aspatial/Water_Point_Data_Exchange_-_Plus__WPdx__.csv") %>% 
+  filter(`#clean_country_name` == "Nigeria")
+```
+
+#### 5.2.2.2 Converting the Aspatial Data into sf point features
+
+This process involves two steps.
+
+First, there is a need to convert the well known text field into sfc field by using st_as_sfc
+
+```{r}
+Waterpoint$Geometry = st_as_sfc(Waterpoint$`New Georeferenced Column`)
+Waterpoint
+```
+
+Secondly, we will convert the tibble data.frame into an sf object by using st_sf(). Afterwhich, we run "Waterpoint_sf" to check if the data.frame is converted into an sf object.
+
+```{r}
+Waterpoint_sf <- st_sf(Waterpoint, crs = 4326)
+Waterpoint_sf
+```
+
+#### 5.2.2.3 Transforming the Waterpoint sf object into Nigeria Projected Coordinate System
+
+```{r}
+Waterpoint_sf <- Waterpoint_sf %>%
+  st_transform(crs = 26392)
+```
+
+# 6 Geospatial Data Cleaning
+
+## 6.1 Excluding Redundant Fields
+
+```{r}
+NGA <- NGA %>%
+   dplyr::select(c(3:4, 8:9))
+```
+
+## 6.2 Checking for duplicated fields in the Geospatial Data
+
+```{r}
+NGA$ADM2_EN[duplicated(NGA$ADM2_EN)==TRUE]
+```
+
+The output above shows that there are 6 LGAs with the same name. However, there are LGAs with the same name but they are located in different states.
+
+```{r}
+NGA$ADM2_EN[94] <- "Bassa, Kogi"
+NGA$ADM2_EN[95] <- "Bassa, Plateau"
+NGA$ADM2_EN[304] <- "Ifelodun, Kwara"
+NGA$ADM2_EN[305] <- "Ifelodun, Osun"
+NGA$ADM2_EN[355] <- "Irepodun, Kwara"
+NGA$ADM2_EN[356] <- "Irepodun, Osun"
+NGA$ADM2_EN[519] <- "Nasarawa, Kano"
+NGA$ADM2_EN[520] <- "Nasarawa, Nasarawa"
+NGA$ADM2_EN[546] <- "Obi, Benue"
+NGA$ADM2_EN[547] <- "Obi, Nasarawa"
+NGA$ADM2_EN[693] <- "Surulere, Lagos"
+NGA$ADM2_EN[694] <- "Surulere, Oyo"
+```
+
+To check if there are still duplicate names after replacing them in the above code chunk.
+
+```{r}
+NGA$ADM2_EN[duplicated(NGA$ADM2_EN)==TRUE]
+```
+
+From the above result, "character(0)" represents no duplicated names.
+
+# 7 Data Wrangling for Water Point Data
+
+Showing the distribution of water point status visually.
+
+```{r}
+funModeling::freq(data = Waterpoint_sf,
+     input = '#status_clean')
+```
+
+Renaming column of #status_clean to status_clean for easier handling in subsequent steps. mutate() and replace_na() are used to change all the NA values (as seen in the above output) in status_clean to unknown.
+
+```{r}
+Waterpoint_sf_nga <- Waterpoint_sf %>% 
+  rename(status_clean = '#status_clean') %>%
+  dplyr::select(status_clean) %>%
+  mutate(status_clean = replace_na(
+    status_clean, "unknown"))
+```
+
+## 7.1 Extracting Water Point Data
+
+The code chunk below is used to extract functional water point
+
+```{r}
+Waterpoint_functional <- Waterpoint_sf_nga %>%
+  filter(status_clean %in%
+            c("Functional",
+              "Functional, needs repair",
+              "Functional, not in use",
+             "Functional but not in use",
+             "Functional but needs repair"))
+```
+
+The code chunk below is used to extract non-functional water point
+
+```{r}
+Waterpoint_nonfunctional <-  Waterpoint_sf_nga %>%
+  filter(status_clean %in%
+           c("Abandoned/Decommissioned",
+             "Non-Functional due to dry season",
+             "Non-Functional",
+             "Non-Functional, dry"))
+```
+
+The code chunk below is used to extract the water point with unknown status
+
+```{r}
+Waterpoint_unknown <- Waterpoint_sf_nga %>%
+  filter(status_clean == "unknown")
+```
+
+The code chunk below is used to perform a quick Exploratory Data Analysis (EDA) on the derived sf data frames for the Functional, Non-functional & Unknown Waterpoints.
+
+```{r}
+funModeling::freq(data = Waterpoint_functional,
+     input = 'status_clean')
+```
+
+```{r}
+funModeling::freq(data = Waterpoint_nonfunctional,
+     input = 'status_clean')
+```
+
+```{r}
+funModeling::freq(data = Waterpoint_unknown,
+     input = 'status_clean')
+```
+
+## 7.2 Performing Point-in-Polygon Count
+
+```{r}
+NGA_wp <- NGA %>% 
+  mutate(`total_wp` = lengths(
+    st_intersects(NGA, Waterpoint_sf_nga))) %>%
+  mutate(`wp_functional` = lengths(
+    st_intersects(NGA, Waterpoint_functional))) %>%
+  mutate(`wp_nonfunctional` = lengths(
+    st_intersects(NGA, Waterpoint_nonfunctional))) %>%
+  mutate(`wp_unknown` = lengths(
+    st_intersects(NGA, Waterpoint_unknown)))
+```
+
+## 7.3 Visualizing Attributes by using statistical graphs
+
+```{r}
+ggplot(data = NGA_wp,
+       aes(x = total_wp)) + 
+  geom_histogram(bins=20,
+                 color="black",
+                 fill="light blue") +
+  geom_vline(aes(xintercept=mean(
+    total_wp, na.rm=T)),
+             color="red", 
+             linetype="dashed", 
+             size=0.8) +
+  ggtitle("Distribution of total water points by LGA") +
+  xlab("No. of water points") +
+  ylab("No. of\nLGAs") +
+  theme(axis.title.y=element_text(angle = 0))
+```
+
+## 7.4 Saving the Analytical Data in RDS format
+
+In order to retain the sf object structure for subsequent analysis, it is recommended to save the sf data.frame into rds format.
+
+```{r}
+write_rds(NGA_wp, "data/rds/NGA_wp.rds")
+```
+
+# 8 Filter Analytical Data to Osun State
+
+Filtering ADM1_EN Column to store only Osun State Data
+
+```{r}
+osun_data <- subset(NGA_wp, ADM1_EN == "Osun")
+```
+
+Display the first 6 rows in Osun State Data Frame
+
+```{r}
+head(osun_data)
+```
+
+## 8.1 Showing the Functional Waterpoints in Osun State
+
+```{r}
+tm_shape(osun_data) +
+  tm_fill("wp_functional",
+          n = 10,
+          style = "equal",
+          palette = "Blues")
+```
+
+## 8.2 Showing the Non-functional water points in Osun State
+
+```{r}
+tm_shape(osun_data) +
+  tm_fill("wp_nonfunctional",
+          n = 10,
+          style = "equal",
+          palette = "Blues")
+```
+
+Comparing the two graphs plotted, we can see that, there are more Non-functional water points in Osun.
+
+# 9 Geospatial Data Wrangling
+
+## 9.1 Converting Osun_data sf Dataframe to sp's Spatial\* class
+
+```{r}
+osun <- as_Spatial(osun_data)
+```
+
+```{r}
+functional <- as_Spatial(Waterpoint_functional)
+```
+
+```{r}
+nonfunctional <- as_Spatial(Waterpoint_nonfunctional)
+```
+
+## 9.2 Converting the Spatial\* class into Generic sp Format
+
+```{r}
+osun_sp <- as(osun, "SpatialPolygons")
+```
+
+```{r}
+functional_sp <- as(functional, "SpatialPoints")
+```
+
+```{r}
+nonfunctional_sp <- as(nonfunctional, "SpatialPoints")
+```
+
+## 9.3 Converting the Generic sp Format into Spatstat's ppp Format
+
+```{r}
+functional_ppp <- as(functional_sp, "ppp")
+functional_ppp
+```
+
+```{r}
+nonfunctional_ppp <- as(nonfunctional_sp, "ppp")
+nonfunctional_ppp
+```
+
+```{r}
+plot(functional_ppp)
+```
+
+```{r}
+plot(nonfunctional_ppp)
+```
+
+## 9.4 Handling Duplicated Points for Functional_ppp and Nonfunctional_ppp
+
+```{r}
+functional_ppp_jit <- rjitter(functional_ppp,
+                              retry=TRUE,
+                              nsim=1,
+                              drop=TRUE)
+```
+
+```{r}
+nonfunctional_ppp_jit <- rjitter(nonfunctional_ppp,
+                              retry=TRUE,
+                              nsim=1,
+                              drop=TRUE)
+```
+
+Checking for if there are any duplicated points after rjitter function
+
+```{r}
+any(duplicated(functional_ppp_jit))
+```
+
+```{r}
+any(duplicated(nonfunctional_ppp_jit))
+```
+
+## 9.5 Creating Osun owin Object
+
+```{r}
+osun_owin <- as(osun_sp, "owin")
+```
+
+Displaying Osun Boundary created
+
+```{r}
+plot(osun_owin)
+```
+
+## 9.6 Combining Point Events Object and owin Object
+
+```{r}
+functionalOsun_ppp_jit = functional_ppp_jit[osun_owin]
+```
+
+```{r}
+nonfunctionalOsun_ppp_jit = nonfunctional_ppp_jit[osun_owin]
+```
+
+Displaying Functional Waterpoints in Osun State
+
+```{r}
+plot(functionalOsun_ppp_jit)
+```
+
+Displaying Non-Functional Waterpoints in Osun State
+
+```{r}
+plot(nonfunctionalOsun_ppp_jit)
+```
+
+# 10 First-Order Spatial Point Pattern Analysis
+
+## 10.1 Rescaling KDE Values
+
+```{r}
+functionalOsun_ppp.km <- rescale(functionalOsun_ppp_jit, 1000, "km")
+```
+
+```{r}
+nonfunctionalOsun_ppp.km <- rescale(functionalOsun_ppp_jit, 1000, "km")
+```
+
+## 10.2 Kernel Density Estimation
+
+### 10.2.1 Kernel Density Map for Functional Waterpoints in Osun
+
+```{r}
+kde_functionalOsun_bw <- density(functionalOsun_ppp.km,
+                                 sigma=bw.diggle,
+                                 edge=TRUE,
+                                 kernel="gaussian")
+plot(kde_functionalOsun_bw)
+```
+
+### 10.2.2 Kernel Density Map for Non-functional Waterpoints in Osun
+
+```{r}
+kde_nonfunctionalOsun_bw <- density(nonfunctionalOsun_ppp.km,
+                                 sigma=bw.diggle,
+                                 edge=TRUE,
+                                 kernel="gaussian")
+plot(kde_nonfunctionalOsun_bw)
+```
+
+## 10.3 Converting KDE Output into Grid Object
+
+## 10.4 Kernel Density Maps Vs Point Map
+
+### 10.4.1 Importing and Filtering of Data for Point Map
+
+```{r}
+wp_nga_filter <- read_csv("data/aspatial/Water_Point_Data_Exchange_-_Plus__WPdx__.csv")
+```
+
+```{r}
+wp_nga_filter <- wp_nga_filter %>% 
+  rename(clean_adm1 = '#clean_adm1')
+```
+
+```{r}
+wp_nga_filter <- wp_nga_filter %>% 
+  rename(status_clean = '#status_clean')
+```
+
+```{r}
+wp_nga_filter <- subset(wp_nga_filter, clean_adm1 == "Osun")
+```
+
+```{r}
+wp_nga_filter$Geometry = st_as_sfc(wp_nga_filter$`New Georeferenced Column`)
+wp_nga_filter
+```
+
+```{r}
+wp_nga_filter <- st_sf(wp_nga_filter, crs=4326)
+wp_nga_filter
+```
+
+```{r}
+wp_nga_filter <- wp_nga_filter %>%
+  st_transform(crs = 26392)
+```
+
+```{r}
+wp_nga_filterpoint <- wp_nga_filter %>%
+  filter(status_clean == "Functional" | status_clean == "Functional but not in use" | status_clean == "Functional but needs repair" | status_clean ==     "Functional, needs repair" | status_clean == "Functional, not in use")
+```
+
+### 10.4.2 Display Point Map for Functional Waterpoints
+
+```{r}
+wp_nga_filter_point <- tmap_mode("view")
+  tm_shape(wp_nga_filterpoint) +
+  tm_dots(col = "status_clean",
+             size = 0.01,
+             border.col = "black",
+             border.lwd = 0.5) +
+  tm_view(set.zoom.limits = c(9,11))
+```
+
+10.4.3 Display Kernel Density Map for Functional Waterpoints
+
+```{r}
+plot(kde_functionalOsun_bw)
+```
+
+::: callout-note
+## Advantages of Kernel Density Map Over Point Map
+:::
+
+# 11 Analysing Spatial Point Process using L-Function
+
+# 12 Local Colocation Quotients
+
+## 12.1 Preparing Nearest Neighbour
+
+```{r}
+waterpoint_sf_osun <- Waterpoint_sf %>% 
+  rename(status_clean = '#status_clean') %>%
+  rename(lat = '#lat_deg') %>%
+  rename(lng = '#lon_deg') %>%
+  rename(clean_adm1 = '#clean_adm1') %>%
+  mutate(status_clean = replace_na(
+    status_clean, "unknown"))
+```
+
+```{r}
+waterpoint_sf_osunfilter <- subset(waterpoint_sf_osun, clean_adm1 == "Osun")
+```
+
+```{r}
+waterpoint_sf_osunfilter <- waterpoint_sf_osunfilter %>%
+  dplyr::select(status_clean, lat, lng)
+```
+
+```{r}
+nb <- include_self(
+  st_knn(st_geometry(waterpoint_sf_osunfilter), 6))
+```
+
+```{r}
+wt <- st_kernel_weights(nb, 
+                        waterpoint_sf_osunfilter, 
+                        "gaussian", 
+                        adaptive = TRUE)
+```
+
+```{r}
+functionalWaterpoint <- waterpoint_sf_osunfilter %>%
+  filter(status_clean %in%
+           c("Functional",
+             "Functional but not in use",
+             "Functional but needs repair",
+             "Functional, needs repair",
+             "Functional, not in use"))
+A <- functionalWaterpoint$status_clean
+```
+
+```{r}
+nonfunctionalWaterpoint <- waterpoint_sf_osunfilter %>%
+  filter(status_clean %in%
+           c("Abandoned/Decommissioned",
+             "Non-Functional due to dry season",
+             "Non-Functional",
+             "Non-functional, dry"))
+B <- nonfunctionalWaterpoint$status_clean
+```
+
+```{r}
+LCLQ <- local_colocation(A, B, nb, wt, 39)
+```
+
+```{r}
+LCLQ_WP <- cbind(waterpoint_sf_osunfilter, LCLQ)
+```
+
+```{r}
+tmap_mode("view")
+tm_shape(LCLQ_WP)+ 
+  tm_dots(col = "Non.Functional",
+             size = 0.01,
+             border.col = "black",
+             border.lwd = 0.5) +
+  tm_view(set.zoom.limits = c(9, 16))
+```
+
+[Kernel Density Map with Open Street Map]{.underline}
+
+```{}
+```
+
+```{}
+```
+
+```{}
+```
+
+## 
