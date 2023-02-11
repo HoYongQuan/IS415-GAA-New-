@@ -437,7 +437,7 @@ nonfunctionalOsun_ppp.km <- rescale(functionalOsun_ppp_jit, 1000, "km")
 
 ```{r}
 kde_functionalOsun_bw <- density(functionalOsun_ppp.km,
-                                 sigma=bw.diggle,
+                                 sigma=bw.ppl,
                                  edge=TRUE,
                                  kernel="gaussian")
 plot(kde_functionalOsun_bw)
@@ -447,13 +447,31 @@ plot(kde_functionalOsun_bw)
 
 ```{r}
 kde_nonfunctionalOsun_bw <- density(nonfunctionalOsun_ppp.km,
-                                 sigma=bw.diggle,
+                                 sigma=bw.ppl,
                                  edge=TRUE,
                                  kernel="gaussian")
 plot(kde_nonfunctionalOsun_bw)
 ```
 
 ## 10.3 Converting KDE Output into Grid Object
+
+```{r}
+kde_functionalOsun_bw_raster <- kde_functionalOsun_bw %>% as.SpatialGridDataFrame.im() %>% raster()
+kde_functionalOsun_bw_raster
+```
+
+```{r}
+projection(kde_functionalOsun_bw_raster) <- CRS("+init=EPSG:26392 +datum=WGS84 +units=km")
+kde_functionalOsun_bw_raster
+```
+
+```{r}
+tmap_mode("view") +
+  tm_shape(kde_functionalOsun_bw_raster) + 
+  tm_basemap("OpenStreetMap") +
+  tm_raster("v") +
+  tm_layout(legend.position = c("right", "bottom"), frame = FALSE)
+```
 
 ## 10.4 Kernel Density Maps Vs Point Map
 
@@ -517,9 +535,45 @@ plot(kde_functionalOsun_bw)
 
 ::: callout-note
 ## Advantages of Kernel Density Map Over Point Map
+
+-   Kernel density maps smooth out the data, making it easier to see patterns and trends in the data. This is useful for detecting areas with high concentrations of data points.
+
+-   If point maps are cluttered, it can be difficult to interpret when there are many data points in a small area. Thus, kernel density maps help to mitigate this problem by aggregating the data into a continuous surface making it easier to visualize the patterns.
+
+-   Kernel density maps can show the density of data points in a particular area which point map is unable to do so.
+
+-   Kernel density maps can also better represent the spatial relationships between data points such as promixity, distance and clustering.
 :::
 
 # 11 Analysing Spatial Point Process using L-Function
+
+```{r}
+L_ck = Lest(functionalOsun_ppp_jit, correction = "Ripley")
+plot(L_ck, . -r ~ r, 
+     ylab= "L(d)-r", xlab = "d(m)")
+```
+
+```{r}
+L_ck.csr <- envelope(functionalOsun_ppp_jit, Lest, nsim = 39, rank = 1, glocal=TRUE)
+```
+
+```{r}
+plot(L_ck.csr, . - r ~ r, xlab="d", ylab="L(d)-r")
+```
+
+```{r}
+L_ck_non = Lest(nonfunctionalOsun_ppp_jit, correction = "Ripley")
+plot(L_ck_non, . -r ~ r, 
+     ylab= "L(d)-r", xlab = "d(m)")
+```
+
+```{r}
+L_ck_non.csr <- envelope(nonfunctionalOsun_ppp_jit, Lest, nsim = 39, rank = 1, glocal=TRUE)
+```
+
+```{r}
+plot(L_ck_non.csr, . - r ~ r, xlab="d", ylab="L(d)-r")
+```
 
 # 12 Local Colocation Quotients
 
@@ -593,17 +647,6 @@ tm_shape(LCLQ_WP)+
              border.col = "black",
              border.lwd = 0.5) +
   tm_view(set.zoom.limits = c(9, 16))
-```
-
-[Kernel Density Map with Open Street Map]{.underline}
-
-```{}
-```
-
-```{}
-```
-
-```{}
 ```
 
 ## 
