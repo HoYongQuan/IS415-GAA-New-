@@ -643,12 +643,14 @@ wp_nga_filter <- st_sf(wp_nga_filter, crs=4326)
 wp_nga_filter
 ```
 
+Converting sf object into Nigeria Projected System
+
 ```{r}
 wp_nga_filter <- wp_nga_filter %>%
   st_transform(crs = 26392)
 ```
 
-Converting sf object into Nigeria Projected System
+Filtering out only the functional water points in the sf object
 
 ```{r}
 wp_nga_filterpoint <- wp_nga_filter %>%
