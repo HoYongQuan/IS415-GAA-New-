@@ -636,7 +636,7 @@ wp_nga_filter$Geometry = st_as_sfc(wp_nga_filter$`New Georeferenced Column`)
 wp_nga_filter
 ```
 
-Converting tibble data frame into sf Objectby using st_sf() as mentoined in Section 5.2.2
+Converting tibble data frame into sf Object by using st_sf() as mentioned in Section 5.2.2
 
 ```{r}
 wp_nga_filter <- st_sf(wp_nga_filter, crs=4326)
@@ -724,7 +724,7 @@ Plotting the Graph
 ::: callout-note
 ## Statistical Conclusion for Functional Water Points
 
-The observed L(r) is above the L(theo) and above the envelope (Grey Area). This shows that the functional water points are clustered, hence rejecting the null hypothesis that the functional water points in Osun State, Nigeria are randomly distributed.
+The observed L(r) is above the L(theo) and above the envelope (Grey Area). This shows that the functional water points are clustered, hence rejecting the null hypothesis that the functional water points in Osun State are randomly distributed.
 :::
 
 ## 11.2 Non Functional Water Points in Osun State
