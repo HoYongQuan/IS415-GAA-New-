@@ -856,5 +856,5 @@ tm_shape(LCLQ_WP)+
 ::: callout-note
 ## Conclusion from above Spatial Correlation Analysis
 
-As seen from the plotted figure above, the local colocation quotient has the value of 1.007 which is greater than 1. Hence, this proves that Category of interest A (Functional waterpoints) are more likely to have features of neighbouring category of interest B (Nonfunctional water points) within that area.
+As seen from the plotted figure above, the local colocation quotient has the value of 1.007 which is greater than 1. Hence, this proves that Category of interest A (Functional waterpoints) are more likely to have features of neighbouring category of interest B (Nonfunctional water points) within their neighbourhood.
 :::
