@@ -395,12 +395,6 @@ nonfunctional <- as_Spatial(Waterpoint_nonfunctional)
 
 **spatstat** requires the analytical data in **ppp** object form. There is no direct way to convert a Spatial\* class into a **ppp** object. Thus, we need to convert the **Spatial\* class** into **Spatial** object first. The code chunk below converts the Spatial\* classes into generic sp objects.
 
-::: callout-note
-## Info
-
-Converted generic sp format would be used for subsequent Exploratory Spatial Data Analysis (ESDA) task at Section 10.
-:::
-
 ```{r}
 osun_sp <- as(osun, "SpatialPolygons")
 ```
@@ -615,24 +609,34 @@ tmap_arrange(f1, f2, nrow = 1)
 wp_nga_filter <- read_csv("data/aspatial/Water_Point_Data_Exchange_-_Plus__WPdx__.csv")
 ```
 
+Renaming the column name to remove the \# character for easier handling
+
 ```{r}
 wp_nga_filter <- wp_nga_filter %>% 
   rename(clean_adm1 = '#clean_adm1')
 ```
+
+Renaming the column name to remove the \# character for easier handling
 
 ```{r}
 wp_nga_filter <- wp_nga_filter %>% 
   rename(status_clean = '#status_clean')
 ```
 
+Filter to only display Osun State Data
+
 ```{r}
 wp_nga_filter <- subset(wp_nga_filter, clean_adm1 == "Osun")
 ```
+
+Converting well known text field into sfc field using st_as_sfc() for sf point feature as mentioned in Section 5.2.2
 
 ```{r}
 wp_nga_filter$Geometry = st_as_sfc(wp_nga_filter$`New Georeferenced Column`)
 wp_nga_filter
 ```
+
+Converting tibble data frame into sf Objectby using st_sf() as mentoined in Section 5.2.2
 
 ```{r}
 wp_nga_filter <- st_sf(wp_nga_filter, crs=4326)
@@ -643,6 +647,8 @@ wp_nga_filter
 wp_nga_filter <- wp_nga_filter %>%
   st_transform(crs = 26392)
 ```
+
+Converting sf object into Nigeria Projected System
 
 ```{r}
 wp_nga_filterpoint <- wp_nga_filter %>%
@@ -703,13 +709,16 @@ Significance Level: 0.05
 
 The null hypothesis will be rejected if p-value if smaller than alpha value of 0.001.
 
-`{#|eval: false} {r} L_ck.csr <- envelope(functionalOsun_ppp_jit, Lest, nsim = 39, rank = 1, glocal=TRUE)`
+`` {#|eval: false} {r} L_ck.csr <- envelope(functionalOsun_ppp_jit, Lest, nsim = 39, rank = 1, glocal=TRUE)` ``
 
 ![](pictures%20for%20L-Function/L-Functional2.JPG)
 
 Plotting the Graph
 
-`{#|eval: false} {r} plot(L_ck.csr, . - r ~ r, xlab="d", ylab="L(d)-r")`
+```{r}
+#|eval: false
+plot(L_ck.csr, . - r ~ r, xlab="d", ylab="L(d)-r")
+```
 
 ![](pictures%20for%20L-Function/L-Functional%203.JPG)
 
@@ -741,7 +750,7 @@ Significance Level: 0.05
 
 The null hypothesis will be rejected if p-value if smaller than alpha value of 0.001.
 
-`{#|eval: false} {r} L_ck_non.csr <- envelope(nonfunctionalOsun_ppp_jit, Lest, nsim = 39, rank = 1, glocal=TRUE)`
+`{#|eval: false} {r} L_ck_non.csr <- envelope(nonfunctionalOsun_ppp_jit, Lest, nsim = 39, rank = 1, glocal=TRUE`
 
 ![](pictures%20for%20L-Function/L-nonfunctional2.JPG)
 
