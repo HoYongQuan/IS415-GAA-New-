@@ -93,9 +93,9 @@ tm_shape(hunan_GDPPC) +
 #Classification: Regional Economics, Equal interval range
 ```
 
-# Identify area nieghbours
+# Deriving Contiguity Spatial Weights
 
-## Contiguity neighbours method
+## Contiguity neighbours method: Queen's method
 
 In the code chunk below, st_contiguity() is used to derive a contiguity neighbour list by using Queen's method.
 
@@ -107,6 +107,12 @@ cn_queen <- hunan_GDPPC %>%
 #mutate - create new field
 #.before = 1 = put newly created field at the first column
 #nb format c(2,3,4,57,85), numbers in the bracket represents the row name
+```
+
+The code chunk below is used to print the summary of the first lag neighbour list (i.e. nb)
+
+```{r}
+#summary(nb_queen$nb)
 ```
 
 ::: callout-note
