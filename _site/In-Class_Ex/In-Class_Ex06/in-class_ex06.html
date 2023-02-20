@@ -203,6 +203,10 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
     <a class="dropdown-item" href="../../In-Class_Ex/In-Class_Ex06/in-class_ex06.html">
  <span class="dropdown-text">In-Class Exercise 6</span></a>
   </li>  
+        <li>
+    <a class="dropdown-item" href="../../In-Class_Ex/In-Class_Ex07/in-class_ex07.html">
+ <span class="dropdown-text">In-Class Exercise 7</span></a>
+  </li>  
     </ul>
   </li>
   <li class="nav-item dropdown ">
@@ -252,9 +256,9 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
   <li><a href="#combining-both-data-frame-by-using-left-join" id="toc-combining-both-data-frame-by-using-left-join" class="nav-link" data-scroll-target="#combining-both-data-frame-by-using-left-join">Combining both data frame by using left join</a></li>
   </ul></li>
   <li><a href="#plotting-a-choropleth-map" id="toc-plotting-a-choropleth-map" class="nav-link" data-scroll-target="#plotting-a-choropleth-map">Plotting a choropleth map</a></li>
-  <li><a href="#identify-area-nieghbours" id="toc-identify-area-nieghbours" class="nav-link" data-scroll-target="#identify-area-nieghbours">Identify area nieghbours</a>
+  <li><a href="#deriving-contiguity-spatial-weights" id="toc-deriving-contiguity-spatial-weights" class="nav-link" data-scroll-target="#deriving-contiguity-spatial-weights">Deriving Contiguity Spatial Weights</a>
   <ul class="collapse">
-  <li><a href="#contiguity-neighbours-method" id="toc-contiguity-neighbours-method" class="nav-link" data-scroll-target="#contiguity-neighbours-method">Contiguity neighbours method</a></li>
+  <li><a href="#contiguity-neighbours-method-queens-method" id="toc-contiguity-neighbours-method-queens-method" class="nav-link" data-scroll-target="#contiguity-neighbours-method-queens-method">Contiguity neighbours method: Queen’s method</a></li>
   <li><a href="#computing-contiguity-weights" id="toc-computing-contiguity-weights" class="nav-link" data-scroll-target="#computing-contiguity-weights">Computing Contiguity weights</a>
   <ul class="collapse">
   <li><a href="#contiguity-weights-queens-method" id="toc-contiguity-weights-queens-method" class="nav-link" data-scroll-target="#contiguity-weights-queens-method">Contiguity weights: Queen’s method</a></li>
@@ -287,7 +291,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
     <div>
     <div class="quarto-title-meta-heading">Modified</div>
     <div class="quarto-title-meta-contents">
-      <p class="date-modified">February 19, 2023</p>
+      <p class="date-modified">February 20, 2023</p>
     </div>
   </div>
     
@@ -413,10 +417,10 @@ Important
 <div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co">#Classification: Regional Economics, Equal interval range</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
-<section id="identify-area-nieghbours" class="level1">
-<h1>Identify area nieghbours</h1>
-<section id="contiguity-neighbours-method" class="level2">
-<h2 class="anchored" data-anchor-id="contiguity-neighbours-method">Contiguity neighbours method</h2>
+<section id="deriving-contiguity-spatial-weights" class="level1">
+<h1>Deriving Contiguity Spatial Weights</h1>
+<section id="contiguity-neighbours-method-queens-method" class="level2">
+<h2 class="anchored" data-anchor-id="contiguity-neighbours-method-queens-method">Contiguity neighbours method: Queen’s method</h2>
 <p>In the code chunk below, st_contiguity() is used to derive a contiguity neighbour list by using Queen’s method.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>cn_queen <span class="ot">&lt;-</span> hunan_GDPPC <span class="sc">%&gt;%</span></span>
@@ -426,6 +430,10 @@ Important
 <span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a><span class="co">#mutate - create new field</span></span>
 <span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a><span class="co">#.before = 1 = put newly created field at the first column</span></span>
 <span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a><span class="co">#nb format c(2,3,4,57,85), numbers in the bracket represents the row name</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>The code chunk below is used to print the summary of the first lag neighbour list (i.e.&nbsp;nb)</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="co">#summary(nb_queen$nb)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <div class="callout-note callout callout-style-default callout-captioned">
 <div class="callout-header d-flex align-content-center">
@@ -441,10 +449,10 @@ Do it Yourself!
 </div>
 </div>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>cn_rook <span class="ot">&lt;-</span> hunan_GDPPC <span class="sc">%&gt;%</span></span>
-<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">nb=</span> <span class="fu">st_contiguity</span>(geometry),</span>
-<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>         <span class="at">queen =</span> <span class="cn">FALSE</span>,</span>
-<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>         <span class="at">.before =</span> <span class="dv">1</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>cn_rook <span class="ot">&lt;-</span> hunan_GDPPC <span class="sc">%&gt;%</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">nb=</span> <span class="fu">st_contiguity</span>(geometry),</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>         <span class="at">queen =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>         <span class="at">.before =</span> <span class="dv">1</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
 <section id="computing-contiguity-weights" class="level2">
@@ -452,22 +460,22 @@ Do it Yourself!
 <section id="contiguity-weights-queens-method" class="level3">
 <h3 class="anchored" data-anchor-id="contiguity-weights-queens-method">Contiguity weights: Queen’s method</h3>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>wm_q <span class="ot">&lt;-</span> hunan_GDPPC <span class="sc">%&gt;%</span></span>
-<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">nb =</span> <span class="fu">st_contiguity</span>(geometry),</span>
-<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>         <span class="at">wt =</span> <span class="fu">st_weights</span>(nb),</span>
-<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>         <span class="at">.before =</span> <span class="dv">1</span>)</span>
-<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a><span class="co">#nb is list</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>wm_q <span class="ot">&lt;-</span> hunan_GDPPC <span class="sc">%&gt;%</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">nb =</span> <span class="fu">st_contiguity</span>(geometry),</span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>         <span class="at">wt =</span> <span class="fu">st_weights</span>(nb),</span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>         <span class="at">.before =</span> <span class="dv">1</span>)</span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a><span class="co">#nb is list</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
 <section id="contiguity-weights-rooks-method" class="level3">
 <h3 class="anchored" data-anchor-id="contiguity-weights-rooks-method">Contiguity weights: Rook’s method</h3>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>wm_r <span class="ot">&lt;-</span> hunan <span class="sc">%&gt;%</span></span>
-<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">nb =</span> <span class="fu">st_contiguity</span>(geometry),</span>
-<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>         <span class="at">queen =</span> <span class="cn">FALSE</span>,</span>
-<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>         <span class="at">wt =</span> <span class="fu">st_weights</span>(nb),</span>
-<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>         <span class="at">.before =</span> <span class="dv">1</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>wm_r <span class="ot">&lt;-</span> hunan <span class="sc">%&gt;%</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">nb =</span> <span class="fu">st_contiguity</span>(geometry),</span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>         <span class="at">queen =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>         <span class="at">wt =</span> <span class="fu">st_weights</span>(nb),</span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>         <span class="at">.before =</span> <span class="dv">1</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 
 
