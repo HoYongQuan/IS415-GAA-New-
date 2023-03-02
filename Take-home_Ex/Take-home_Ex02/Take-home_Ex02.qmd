@@ -173,7 +173,7 @@ From the above output, we can see that there are many small islands (in orange c
 jkt_village <- filter(jkt_village, City != "KEPULAUAN SERIBU")
 ```
 
-Checking for the column KAB_KOTA to ensure that the filter has been removed.
+Checking for the column KAB_KOTA (City) to ensure that the filter has been removed.
 
 ```{r}
 unique(jkt_village$"City")
@@ -450,7 +450,6 @@ Earlier in sections 4.2.2.4 & 4.2.1.1.2, we have already checked and omitted for
 The below code chunk will check for values that are not in each other dataframes.
 
 ```{r}
-#checking for unique values in jkt_vaccination and not in jkt_village
 unique(jkt_vaccination$Sub_District[!(jkt_vaccination$Sub_District %in% jkt_village$Sub_District)])
 ```
 
