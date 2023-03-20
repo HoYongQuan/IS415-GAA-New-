@@ -1,0 +1,192 @@
+---
+title: "Take-home Exercise 3: Predicting HDB Public Housing Resale Pricies using Geographically Weighted Methods"
+---
+
+# Setting The Scene
+
+Housing is an essential component of household wealth worldwide. Buying a housing has always been a major investment for most people. The price of housing is affected by many factors. Some of them are global in nature such as the general economy of a country or inflation rate. Others can be more specific to the properties themselves. These factors can be further divided to structural and locational factors. Structural factors are variables related to the property themselves such as the size, fitting, and tenure of the property. Locational factors are variables related to the neighbourhood of the properties such as proximity to childcare centre, public transport service and shopping centre.
+
+Conventional, housing resale prices predictive models were built by using [**Ordinary Least Square (OLS)**](https://en.wikipedia.org/wiki/Ordinary_least_squares) method. However, this method failed to take into consideration that spatial autocorrelation and spatial heterogeneity exist in geographic data sets such as housing transactions. With the existence of spatial autocorrelation, the OLS estimation of predictive housing resale pricing models could lead to biased, inconsistent, or inefficient results (Anselin 1998). In view of this limitation, **Geographical Weighted Models** were introduced for calibrating predictive model for housing resale prices.
+
+# 1 The Task
+
+In this take-home exercise, we are tasked to predict HDB resale prices at the sub-market level (i.e. HDB 3-room, HDB 4-room and HDB 5-room) for the month of January and February 2023 in Singapore. The predictive models must be built by using by using conventional OLS method and GWR methods. You are also required to compare the performance of the conventional OLS method versus the geographical weighted methods.
+
+# 2 Installing Packages
+
+-   sf
+
+-   tidyverse
+
+-   tmap
+
+-   httr
+
+-   jsonlite
+
+-   rvest
+
+-   sp
+
+-   ggpubr
+
+-   corrplot
+
+-   broom
+
+-   olsrr
+
+-   spdep
+
+-   GWmodel
+
+-   devtools
+
+-   rgeos
+
+-   lwgeom
+
+-   maptools
+
+```{r}
+packages <- c('sf', 'tidyverse', 'tmap', 'httr', 'jsonlite', 'rvest', 
+              'sp', 'ggpubr', 'corrplot', 'broom',  'olsrr', 'spdep', 
+              'GWmodel', 'devtools', 'rgeos', 'lwgeom', 'maptools', 'matrixStats', 'units', 'onemapsgapi')
+
+for(p in packages){
+  if(!require(p, character.only = T)){
+    install.packages(p, repos = "http://cran.us.r-project.org")
+  }
+  library(p, character.only = T)
+}
+```
+
+# 3 The Data
+
+## 3.1 Importing Aspatial Data
+
+```{r}
+hdb_resale <- read_csv("data/aspatial/resale-flat-prices-based-on-registration-date-from-jan-2017-onwards.csv")
+```
+
+Let's see what aspatial data we are working with
+
+```{r}
+head(hdb_resale)
+```
+
+### 3.1.1 Filtering HDB Resale Aspatial Data
+
+From the results above, we can see that the data starts from Year 2017. But for this assignment we are only focusing on 1st January 2021 to 31st December 2022. Thus the below code chunk will do the filtering.
+
+```{r}
+hdb_resale_filtered <- filter(hdb_resale, flat_type == "4 ROOM") %>%
+  filter(month >= "2021-01" & month <= "2022-12")
+```
+
+Now let us see what data we are working with and see if the data is what we have filtered.
+
+```{r}
+head(hdb_resale_filtered)
+```
+
+From the above output, it is according to the specifications that we wanted now.
+
+The below code chunks will check if the months, room type are what we want to work with.
+
+### 3.1.2 Checking for 4 Room Type Period
+
+```{r}
+unique(hdb_resale_filtered$flat_type)
+```
+
+From the above output, the "hdb_resale_filtered" only consists of 4 Room which reflects our filter code in 3.1.1.
+
+### 3.1.3 Checking for unique months
+
+```{r}
+unique(hdb_resale_filtered$month)
+```
+
+From the above output, the month and year ranges from January 2021 to December 2022 which is what we want.
+
+## 3.2 Importing Geospatial Data
+
+```{r}
+search_themes(token, "parks", "nparks") 
+```
+
+```{r}
+library(sf)
+library(onemapsgapi)
+
+token <- "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOjEwMDMyLCJ1c2VyX2lkIjoxMDAzMiwiZW1haWwiOiJjZXJhbWljeXFAZ21haWwuY29tIiwiZm9yZXZlciI6ZmFsc2UsImlzcyI6Imh0dHA6XC9cL29tMi5kZmUub25lbWFwLnNnXC9hcGlcL3YyXC91c2VyXC9zZXNzaW9uIiwiaWF0IjoxNjc4ODY4ODM2LCJleHAiOjE2NzkzMDA4MzYsIm5iZiI6MTY3ODg2ODgzNiwianRpIjoiYWM1NGQwMDA5ODQ3ODBjYTk1YzRkNGE3OGNhN2U3MzMifQ.u3xco4MyNWNldCm7I7X23VOlxbuEsWBXMzlxhqB3wJs"
+search_themes(token, "searchval")
+get_theme_status(token, "themename")
+themetibble <- get_theme(token, "themename")
+themesf <- st_as_sf(themetibble, coords=c("Lng", "Lat"), crs=4326)
+```
+
+```{r}
+library(sf)
+library(onemapsgapi)
+
+# extracting eldercare data as an sf object into R
+eldercare<-get_theme(token,"eldercare")
+eldercare.sf <- st_as_sf(eldercare, coords=c("Lng", "Lat"), crs=4326)
+
+# creating a saved sf object in data file for easy reference
+st_write(obj = eldercare.sf,
+         dsn = "data/geospatial/extracted",
+         layer = "eldercare",
+         driver = "ESRI Shapefile")
+```
+
+## 
+
+```{r}
+library(httr)
+library(jsonlite)
+
+# Read in CSV file with list of MRT station names
+mrt_stations <- read.csv("data/working_mrt.csv", stringsAsFactors = FALSE)
+
+# Function to get latitude and longitude for MRT stations
+get_mrt_latlong <- function(station) {
+  
+  # Construct URL for Open Map API call
+  url <- paste0("https://nominatim.openstreetmap.org/search?q=", 
+                station, "+MRT+station&format=json")
+  
+  # Call Open Map API and retrieve results
+  response <- GET(url)
+  result <- content(response, "text")
+  data <- fromJSON(result)
+  
+  # Extract latitude and longitude from results
+  lat <- as.numeric(data[[1]]$lat)
+  lon <- as.numeric(data[[1]]$lon)
+  
+  # Return latitude and longitude
+  return(c(lat, lon))
+}
+
+# Call get_mrt_latlong for each station and store results in a data frame
+mrt_latlong <- data.frame(
+  station = mrt_stations$station,
+  lat = numeric(length(mrt_stations$station)),
+  lon = numeric(length(mrt_stations$station))
+)
+
+for (i in 1:length(mrt_stations$station)) {
+  latlon <- get_mrt_latlong(mrt_stations$station[i])
+  mrt_latlong$lat[i] <- latlon[1]
+  mrt_latlong$lon[i] <- latlon[2]
+}
+
+# Write results to a new CSV file
+write.csv(mrt_latlong, "mrt_latlong.csv", row.names = FALSE)
+
+```
+
+## 

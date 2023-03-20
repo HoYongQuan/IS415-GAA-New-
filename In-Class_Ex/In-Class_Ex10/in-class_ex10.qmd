@@ -1,0 +1,183 @@
+---
+title: "Modelling Geographical Accesibility"
+---
+
+# Installing and Loading Packages
+
+```{r}
+pacman::p_load(tmap, SpatialAcc, sf, 
+               ggstatsplot, reshape2,
+               tidyverse)
+```
+
+# Importing Geospatial Data
+
+```{r}
+hexagon <- st_read(dsn="data/geospatial",
+                   layer = "hexagons")
+eldercare <- st_read(dsn = "data/geospatial",
+                     layer = "ELDERCARE")
+mpsz <- st_read(dsn = "data/geospatial", 
+                layer = "MP14_SUBZONE_NO_SEA_PL")
+```
+
+# Updating CRS Information
+
+```{r}
+mpsz <- st_transform(mpsz, 3414)
+eldercare <- st_transform(eldercare, 3414)
+hexagon <- st_transform(hexagon, 3414)
+```
+
+# Cleaning and updating attribute fields of the geospatial data
+
+```{r}
+eldercare <- eldercare %>%
+  select(fid, ADDRESSPOS) %>%
+  rename(destination_id = fid,
+         postal_code = ADDRESSPOS) %>%
+  mutate(capacity = 100)
+```
+
+```{r}
+#each of hexagon will have the demand of 100
+hexagon <- hexagon %>%
+  select(fid) %>%
+  rename(origin_id = fid) %>%
+  mutate (demand = 100)
+```
+
+# Importing Distance Matrix
+
+```{r}
+ODMatrix <- read_csv("data/aspatial/OD_Matrix.csv", skip = 0)
+```
+
+```{r}
+#note: since tidyr version 1.0 a new function called 'pivot_wider' is introduce. You should use pivot-wider instead of spread()
+
+#spread: pivot
+#row: origin, col: num of eldercare (destination)
+
+distmat <- ODMatrix %>%
+  select(origin_id, destination_id, total_cost) %>%
+  spread(destination_id, total_cost) %>%
+  select(c(-c('origin_id')))
+```
+
+Converting to KM.
+
+```{r}
+distmat_km <- as.matrix(distmat/1000)
+```
+
+Computing Distance Matrix
+
+```{r}
+eldercare_coord <- st_coordinates(eldercare)
+hexagon_coord <- st_coordinates(hexagon)
+```
+
+```{r}
+EucMatrix <- SpatialAcc::distance(hexagon_coord,
+                                  eldercare_coord,
+                                  type = "euclidean"
+                                  )
+```
+
+```{r}
+EucMatrix_km <- as.matrix(EucMatrix/1000)
+```
+
+Computing Hansen's Accessibility
+
+```{r}
+#threshold of 50km.
+acc_Hansen <- data.frame(ac(hexagons$demand,
+                            eldercare$capacity,
+                            distmat_km, 
+                            #d0 = 50,
+                            power = 2, 
+                            family = "Hansen"))
+```
+
+```{r}
+colnames(acc_Hansen) <- "accHansen"
+```
+
+```{r}
+acc_Hansen <- as_tibble(acc_Hansen)
+```
+
+Joining the acc_hansen tibble dataframe with the hexagon
+
+```{r}
+hexagon_Hansen <- bind_cols(hexagon, acc_Hansen)
+```
+
+```{r}
+acc_Hansen <- data.frame(ac(hexagons$demand,
+                            eldercare$capacity,
+                            distmat_km, 
+                            #d0 = 50,
+                            power = 0.5, 
+                            family = "Hansen"))
+
+colnames(acc_Hansen) <- "accHansen"
+acc_Hansen <- tbl_df(acc_Hansen)
+hexagon_Hansen <- bind_cols(hexagon, acc_Hansen)
+```
+
+Getting boundary of hexagon
+
+```{r}
+#mapex : map extend
+mapex <- st_bbox(hexagon)
+```
+
+Plotting map - cartographic quality map
+
+```{r}
+tmap_mode("plot")
+tm_shape(hexagon_Hansen,
+         bbox = mapex) + 
+  tm_fill(col = "accHansen",
+          n = 10,
+          style = "quantile",
+          border.col = "black",
+          border.lwd = 1) +
+tm_shape(eldercare) +
+  tm_symbols(size = 0.1) +
+  tm_layout(main.title = "Accessibility to eldercare: Hansen method",
+            main.title.position = "center",
+            main.title.size = 2,
+            legend.outside = FALSE,
+            legend.height = 0.45, 
+            legend.width = 3.0,
+            legend.format = list(digits = 6),
+            legend.position = c("right", "top"),
+            frame = TRUE) +
+  tm_compass(type="8star", size = 2) +
+  tm_scale_bar(width = 0.15) +
+  tm_grid(lwd = 0.1, alpha = 0.5)
+```
+
+Statistical Graphic Visualization
+
+```{r}
+hexagon_Hansen <- st_join(hexagon_Hansen, mpsz, 
+                          join = st_intersects)
+```
+
+Plotting the distribution
+
+```{r}
+ggplot(data=hexagon_Hansen, 
+       aes(y = log(accHansen), 
+           x= REGION_N)) +
+  geom_boxplot() +
+  geom_point(stat="summary", 
+             fun.y="mean", 
+             colour ="red", 
+             size=2)
+```
