@@ -24,8 +24,7 @@ In this take-home exercise, we are tasked to predict HDB resale prices at the su
 
 -   jsonlite: a JSON parser that can convert from JSON to the appropraite R data types
 
--   rvest: Wrappers around the 'xml2' and 'httr' packages to make it
-    easy to download, then manipulate, HTML and XML.
+-   rvest: Wrappers around the 'xml2' and 'httr' packages to make it easy to download, then manipulate, HTML and XML.
 
 -   sp: Classes and methods for spatial data
 
@@ -664,6 +663,13 @@ PROX_SHOPPING <- ggplot(data = hdb_resale_main_prox_sf, aes(x = `PROX_SHOPPING`)
 
 PROX_SUPERMARKET <- ggplot(data = hdb_resale_main_prox_sf, aes(x = `PROX_SUPERMARKET`)) + geom_histogram(bins = 20, color = "black", fill = "light green")
 
+
+ggarrange(LEASE_MTHS, AREA_SQM, PROX_CBD, PROX_BUS, PROX_MRT, PROX_CHILDCARE, PROX_ELDERCARE, PROX_HAWKER, PROX_PARK, PROX_SUPERMARKET, PROX_SHOPPING,PROX_GOODPRIMARY, ncol = 3, nrow = 4)
+```
+
+### 6.2.3 Multiple Histogram Plots of location factors with radius
+
+```{r}
 WITHIN_350M_BUS <- ggplot(data = hdb_resale_main_prox_sf, aes(x = `WITHIN_350M_BUS`)) +
   geom_histogram(bins = 20, color = "black", fill = "light green")
 
@@ -676,8 +682,7 @@ WITHIN_350M_CHILDCARE <- ggplot(data = hdb_resale_main_prox_sf, aes(x = `WITHIN_
 WITHIN_1KM_PRIMARY <- ggplot(data = hdb_resale_main_prox_sf, aes(x = `WITHIN_1KM_PRIMARY`)) +
   geom_histogram(bins = 20, color = "black", fill = "light green")
 
-
-ggarrange(LEASE_MTHS, AREA_SQM, PROX_CBD, PROX_BUS, PROX_MRT, PROX_CHILDCARE, PROX_ELDERCARE, PROX_HAWKER, PROX_PARK, PROX_SUPERMARKET, PROX_SHOPPING,PROX_GOODPRIMARY, WITHIN_350M_BUS, WITHIN_350M_KINDERGARTEN,WITHIN_350M_CHILDCARE, WITHIN_1KM_PRIMARY, ncol = 2, nrow = 3)
+ggarrange(WITHIN_350M_BUS, WITHIN_350M_KINDERGARTEN,WITHIN_350M_CHILDCARE, WITHIN_1KM_PRIMARY, ncol = 2, nrow = 2)
 ```
 
 ### 6.2.3 Drawing Statistical Point Map
@@ -738,7 +743,7 @@ From the above output, we can see that PROX_CBD is highly correlated but the val
 
 ### 7.2.1 Training Data and Test Data
 
-Training Data (May 2022 to December 2022)
+Training Data - May 2022 to December 2022 (Time period is reduced because of computation time)
 
 ```{r}
 hdbdata <- read_rds("data/model/hdb_resale_main.rds")
@@ -896,13 +901,13 @@ gwRF_bw <- grf.bw(formula = PRICE ~ STOREY + AREA_SQM + PROX_BUS + PROX_CBD +
                   train_data_nogeo, kernel = "adaptive", coords = coords_train, trees=30)
 ```
 
-![](data/Pictures/Bandwidth%201.JPG)
+![](Pictures/Bandwidth%201.JPG)
 
-![](data/Pictures/Bandwidth%202.JPG)
+![](Pictures/Bandwidth%202.JPG)
 
-It the span of 28 hours, only 366 bandwidths were generating :( and the code chunk has not ran finished. Due to the lack of time, i picked the highest R2 value and took is bandwidth value to be used to generate the model. The image below represents the highest r2 value.
+It the span of 28 hours, only 366 bandwidths were generating :( and the code chunk has not ran finished. Due to the lack of time, i picked the highest R2 value and took is bandwidth value to be used to generate the model. The image below represents the bandwidth with the highest r2 value.
 
-![](data/Pictures/Highest%20Bandwidth.JPG)
+![](Pictures/Highest%20Bandwidth.JPG)
 
 ```{r}
 #setting bandwidth value and assign it to variable
@@ -1029,6 +1034,10 @@ There are some limitations to this assignment as well. Supposedly the number of 
 
 # 9 Miscellaneous
 
+## 9.1 Calibrating GRF Model with 70 Trees
+
+The below code chunks will be similar to Section 7.7 onwards. Just that 70 Trees will be used to build the model.
+
 ```{r eval=FALSE}
 set.seed(1234)
 gwRF_adaptive_extra<-grf(formula = PRICE ~ STOREY + AREA_SQM + PROX_BUS + PROX_CBD +
@@ -1047,6 +1056,8 @@ gwRF_adaptive_extra<-grf(formula = PRICE ~ STOREY + AREA_SQM + PROX_BUS + PROX_C
 write_rds(gwRF_adaptive_extra, "data/model/gwRF_adaptive-extra.rds")
 ```
 
+Predicting with test data
+
 ```{r eval=FALSE}
 gwRF_pred_extra <- predict.grf(gwRF_adaptive_extra, 
                            test_data_pred, 
@@ -1058,14 +1069,20 @@ gwRF_pred_extra <- predict.grf(gwRF_adaptive_extra,
 GRF_pred_extra <- write_rds(gwRF_pred_extra, "data/model/GRF_pred_extra.rds")
 ```
 
+Reading the Prediction file generated and converting output to data frame
+
 ```{r}
 GRF_pred_extra <- read_rds("data/model/GRF_pred_extra.rds")
 GRF_pred_df_extra <- as.data.frame(GRF_pred_extra)
 ```
 
+`cbind()` is used to append the predicted values onto test_data
+
 ```{r}
 test_data_p_extra <- cbind(test_data, GRF_pred_df_extra)
 ```
+
+Calculating RMSE
 
 ```{r}
 rmse(test_data_p_extra$PRICE, 
@@ -1077,7 +1094,7 @@ rmse(test_data_p_extra$PRICE,
 
 Making a comparison of the earlier GRF model building which uses 50 trees, the RMSE value was 56525.02. However when the GRF model was build with 70 trees, the RMSE value increased to 56685.62. This shows that not necessarily increasing the number of trees will result in a better model.
 
-Comparing RMSE value (56685.62) which uses 70 trees to build the model to RMSE value (56431.1) which uses 50 trees to build the model, this shows that not necessarily setting higher trees to build the model would result in a better model.
+Comparing RMSE value (56685.62) which uses 70 trees to build the model to RMSE value (56525.02) which uses 50 trees to build the model, this shows that not necessarily setting higher trees to build the model would result in a better model.
 :::
 
 # 10 References
