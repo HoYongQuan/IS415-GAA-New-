@@ -388,6 +388,8 @@ Checking if there is any NA values in Lat and Long
 latandlong[(is.na(latandlong))]
 ```
 
+![](Pictures/LatandLong.JPG)
+
 Thankfully no NA values from the API!
 
 #### 4.3.1.7 Combining Fields
@@ -737,7 +739,7 @@ corrplot(cor(hdb_resale_main_nogeo[, 2:18]),
          type = "upper")
 ```
 
-From the above output, we can see that PROX_CBD is highly correlated but the value seems to be in the acceptable range, thus we do not need to exclude this variable in the subsequent model building.
+From the above output, we can see that PROX_CBD is highly correlated with "good primary school" and "price" but the value seems to be in the acceptable range, thus we do not need to exclude this variable in the subsequent model building.
 
 ## 7.2 Calibrating Multiple Linear Regression Model using OLSRR
 
@@ -864,7 +866,7 @@ coords_test <- st_coordinates(test_data)
 ### 7.6.2 Saving and Reading into RDS
 
 ```{r}
-coords <- write_rds(coords, "data/model/coords.rds" )
+coords <- write_rds(coords, "data/model/coords.rds")
 coords_train <- write_rds(coords_train, "data/model/coords_train.rds" )
 coords_test <- write_rds(coords_test, "data/model/coords_test.rds" )
 ```
