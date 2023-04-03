@@ -50,6 +50,8 @@ website:
             href: "In-Class_Ex/In-Class_Ex10/in-class_ex10.html"
           - text: "In-Class Exercise 11: Accessibility Models"
             href: "In-Class_Ex/In-Class_Ex11/in-class_ex11.html"
+          - text: "In-Class Exercise 12: Accessibility Models"
+            href: "In-Class_Ex/In-Class_Ex12/in-class_ex12.html"
       - text: "Take-home Exercise"
         menu:
           - text: "Take-home Exercise 1"
